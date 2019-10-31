@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+  "icons": {
+    "128": "assets/icon.png"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "run_at": "document_start",
+      "matches": ["https://*.atlassian.net/*"],
+      "all_frames": false,
+      "js": ["content-script-jira.js"]
+    },
+    {
+      "run_at": "document_start",
+      "matches": ["https://github.com/*"],
+      "all_frames": false,
+      "js": ["content-script-github.js"]
+    }
+  ],
+  "page_action": {
+    "default_icon": "assets/icon.png",
+    "default_popup": "assets/popup.html"
+  },
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}
