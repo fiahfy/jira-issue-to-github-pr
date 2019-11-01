@@ -1,6 +1,6 @@
 # jira-issue-to-github-pr
 
-[![Build Status](https://travis-ci.com/fiahfy/jira-issue-to-github-pr.svg?branch=master)](https://travis-ci.com/fiahfy/jira-issue-to-github-pr)
+![badge](https://github.com/fiahfy/jira-issue-to-github-pr/workflows/Web%20Extension%20CI/badge.svg)
 
 > WIP
 
