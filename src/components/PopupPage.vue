@@ -2,6 +2,10 @@
   <v-app>
     <v-content>
       <v-container fluid pa-5>
+        <div class="title mb-5">
+          <v-icon class="pb-1 pr-1">mdi-jira</v-icon>JIRA Issue to
+          <v-icon class="pb-1 pr-1">mdi-github-circle</v-icon>GitHub Pull Request
+        </div>
         <div class="d-flex mt-1">
           <!-- TODO: https://github.com/vuetifyjs/vuetify/issues/4679 -->
           <v-combobox
@@ -53,18 +57,25 @@
             @input.native="branch = $event.srcElement.value"
           />
         </div>
-        <v-subheader class="pl-0">TEMPLATE</v-subheader>
-        <v-text-field v-model="title" label="TITLE" class="" />
-        <v-textarea v-model="body" label="BODY" class="" />
-
-        <div class="caption">
-          Placeholders (<span class="grey lighten-3 mx-1">$$ISSUE_ID$$</span>,
-          <span class="grey lighten-3 mx-1">$$ISSUE_URL$$</span>,
-          <span class="grey lighten-3 mx-1">$$ISSUE_HEADING$$</span>,
-          <span class="grey lighten-3 mx-1">$$ISSUE_DESCRIPTION$$</span>) is
-          replaced with this issue entry
-        </div>
-
+        <v-text-field
+          v-model="titleTemplate"
+          label="TITLE TEMPLATE"
+          placeholder="[$$ISSUE_ID$$] $$ISSUE_HEADING$$"
+          hint="`$$ISSUE_ID$$`, `$$ISSUE_HEADING$$` are replaced with this issue entry"
+          persistent-hint
+        />
+        <v-textarea
+          v-model="bodyTemplate"
+          label="BODY TEMPLATE"
+          placeholder="Leave a comment"
+          hint="`$$ISSUE_ID$$`, `$$ISSUE_URL$$`, `$$ISSUE_HEADING$$`, `$$ISSUE_DESCRIPTION$$` are replaced with this issue entry"
+          persistent-hint
+        />
+        <v-switch
+          v-model="useBodyTemplate"
+          label="Use Body Template"
+          hide-details
+        />
         <v-btn
           block
           small
@@ -155,28 +166,41 @@ export default {
         })
       }
     },
-    title: {
+    titleTemplate: {
       get() {
-        return this.inputs.title
+        return this.inputs.titleTemplate
       },
       set(value) {
         this.setInputs({
           inputs: {
             ...this.inputs,
-            title: value
+            titleTemplate: value
           }
         })
       }
     },
-    body: {
+    bodyTemplate: {
       get() {
-        return this.inputs.body
+        return this.inputs.bodyTemplate
       },
       set(value) {
         this.setInputs({
           inputs: {
             ...this.inputs,
-            body: value
+            bodyTemplate: value
+          }
+        })
+      }
+    },
+    useBodyTemplate: {
+      get() {
+        return this.inputs.useBodyTemplate
+      },
+      set(value) {
+        this.setInputs({
+          inputs: {
+            ...this.inputs,
+            useBodyTemplate: value
           }
         })
       }
@@ -238,8 +262,9 @@ export default {
             baseBranch: this.baseBranch,
             owner: this.owner,
             branch: this.branch,
-            title: this.title,
-            body: this.body
+            titleTemplate: this.titleTemplate,
+            bodyTemplate: this.bodyTemplate,
+            useBodyTemplate: this.useBodyTemplate
           }
         })
         this.addHistory({
@@ -275,6 +300,9 @@ export default {
   font-size: 0.8rem;
 }
 .v-textarea >>> textarea {
+  font-size: 0.8rem;
+}
+.v-input >>> .v-label {
   font-size: 0.8rem;
 }
 </style>

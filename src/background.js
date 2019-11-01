@@ -87,17 +87,19 @@ const buildPr = (params, issue) => {
   const branch = params.branch.replace(/\$\$ISSUE_ID\$\$/, issue.id)
   const url = `https://github.com/${params.baseRepository}/compare/${params.baseBranch}...${params.owner}:${branch}?expand=1`
 
-  const title = params.title
+  const title = params.titleTemplate
     .replace(/\$\$ISSUE_ID\$\$/, issue.id)
     .replace(/\$\$ISSUE_URL\$\$/, issue.url)
     .replace(/\$\$ISSUE_HEADING\$\$/, issue.heading)
     .replace(/\$\$ISSUE_DESCRIPTION\$\$/, issue.description)
 
-  const body = params.body
-    .replace(/\$\$ISSUE_ID\$\$/, issue.id)
-    .replace(/\$\$ISSUE_URL\$\$/, issue.url)
-    .replace(/\$\$ISSUE_HEADING\$\$/, issue.heading)
-    .replace(/\$\$ISSUE_DESCRIPTION\$\$/, issue.description)
+  const body = params.useBodyTemplate
+    ? params.bodyTemplate
+        .replace(/\$\$ISSUE_ID\$\$/, issue.id)
+        .replace(/\$\$ISSUE_URL\$\$/, issue.url)
+        .replace(/\$\$ISSUE_HEADING\$\$/, issue.heading)
+        .replace(/\$\$ISSUE_DESCRIPTION\$\$/, issue.description)
+    : ''
 
   return { url, title, body }
 }

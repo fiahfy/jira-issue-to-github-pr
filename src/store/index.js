@@ -41,8 +41,9 @@ const config = {
       baseBranch: 'develop',
       owner: '',
       branch: 'feature/$$ISSUE_ID$$',
-      title: '[$$ISSUE_ID$$] $$ISSUE_HEADING$$',
-      body: ''
+      titleTemplate: '[$$ISSUE_ID$$] $$ISSUE_HEADING$$',
+      bodyTemplate: '',
+      useBodyTemplate: false
     }
   },
   mutations: {
