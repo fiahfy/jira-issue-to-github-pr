@@ -24,13 +24,13 @@ const getContents = async () => {
     '[data-test-id="issue.views.issue-base.foundation.summary.heading"]'
   )
   if (!headingEl) {
-    throw new Error('[jira-issue-to-github-pr] heading is not found')
+    throw new Error('Heading is not found')
   }
   const heading = headingEl.textContent
 
   const descriptionEl = await querySelectorAsync('.ak-renderer-document')
   if (!descriptionEl) {
-    throw new Error('[jira-issue-to-github-pr] description is not found')
+    throw new Error('Description is not found')
   }
   const description = td.turndown(descriptionEl.innerHTML)
 

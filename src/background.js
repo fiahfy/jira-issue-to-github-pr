@@ -55,6 +55,9 @@ const extractIssueIdfromUrl = (url) => {
   match = url.match(
     /^https:\/\/.*\.atlassian\.net\/projects\/[^/]+\/issues\/([^?/]+)/
   )
+  if (match) {
+    return match[1]
+  }
   // rapid view
   const issueId = extractIssueIdFromRapidBoardUrl(url)
   if (issueId) {

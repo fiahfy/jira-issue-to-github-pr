@@ -66,15 +66,15 @@
             v-model="titleTemplate"
             label="TITLE TEMPLATE"
             placeholder="[$$ISSUE_ID$$] $$ISSUE_HEADING$$"
-            hint="`$$ISSUE_ID$$`, `$$ISSUE_HEADING$$` are replaced with this issue entry"
+            hint="`$$ISSUE_ID$$`, `$$ISSUE_HEADING$$` are replaced with this issue values"
             persistent-hint
           />
           <v-textarea
             v-model="bodyTemplate"
             class="mt-5"
             label="BODY TEMPLATE"
-            placeholder="Leave a comment"
-            hint="`$$ISSUE_ID$$`, `$$ISSUE_URL$$`, `$$ISSUE_HEADING$$`, `$$ISSUE_DESCRIPTION$$` are replaced with this issue entry"
+            placeholder="Write a template"
+            hint="`$$ISSUE_ID$$`, `$$ISSUE_URL$$`, `$$ISSUE_HEADING$$`, `$$ISSUE_DESCRIPTION$$` are replaced with this issue values"
             persistent-hint
           />
           <v-switch
