@@ -28,25 +28,55 @@ const vuexPersist = new VuexPersistence({
   }
 })
 
-const initialState = {}
-
 const config = {
   state: {
-    ...initialState
+    history: {
+      baseRepository: [],
+      baseBranch: [],
+      owner: [],
+      branch: []
+    },
+    inputs: {
+      baseRepository: '',
+      baseBranch: 'develop',
+      owner: '',
+      branch: 'feature/$$ISSUE_ID$$',
+      title: '[$$ISSUE_ID$$] $$ISSUE_HEADING$$',
+      body: ''
+    }
   },
-  getters: {},
   mutations: {
-    setUpstream(state, { upstream }) {
-      state.upstream = upstream
+    setInputs(state, { inputs }) {
+      state.inputs = inputs
     },
-    setOrigin(state, { origin }) {
-      state.origin = origin
-    },
-    setRepository(state, { repository }) {
-      state.repository = repository
-    },
-    setBranch(state, { branch }) {
-      state.branch = branch
+    addHistory(
+      state,
+      {
+        history: { baseRepository, baseBranch, owner, branch }
+      }
+    ) {
+      state.history = {
+        baseRepository: [
+          ...state.history.baseRepository
+            .slice()
+            .filter((item) => item !== baseRepository),
+          baseRepository
+        ],
+        baseBranch: [
+          ...state.history.baseBranch
+            .slice()
+            .filter((item) => item !== baseBranch),
+          baseBranch
+        ],
+        owner: [
+          ...state.history.owner.slice().filter((item) => item !== owner),
+          owner
+        ],
+        branch: [
+          ...state.history.branch.slice().filter((item) => item !== branch),
+          branch
+        ]
+      }
     },
     setTitle(state, { title }) {
       state.title = title

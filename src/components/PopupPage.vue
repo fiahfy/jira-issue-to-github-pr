@@ -2,38 +2,55 @@
   <v-app>
     <v-content>
       <v-container fluid pa-5>
-        <div class="d-flex">
-          <v-text-field
-            v-model="upstream"
-            label="UPSTREAM"
-            class="mr-2"
-            :error-messages="upstreamErrors"
-            required
-            :style="{ width: '60px' }"
-          />
-          <v-text-field
-            v-model="repository"
-            label="REPOSITORY NAME"
+        <div class="d-flex mt-1">
+          <!-- TODO: https://github.com/vuetifyjs/vuetify/issues/4679 -->
+          <v-combobox
+            v-model="baseRepository"
+            label="BASE REPOSITORY"
             class=" mr-2"
-            :error-messages="repositoryErrors"
+            :items="history.baseRepository.slice().reverse()"
+            :error-messages="baseRepositoryErrors"
+            placeholder="owner/repository-name"
+            dense
             required
+            @input.native="baseRepository = $event.srcElement.value"
           />
-          <v-icon>mdi-arrow-left-bold</v-icon>
-          <v-text-field
-            v-model="origin"
-            label="ORIGIN"
+          <v-combobox
+            v-model="baseBranch"
+            label="BASE BRANCH"
+            class=" mr-2"
+            :items="history.baseBranch.slice().reverse()"
+            :error-messages="baseBranchErrors"
+            placeholder="develop"
+            dense
+            required
+            :style="{ width: '72px' }"
+            @input.native="baseBranch = $event.srcElement.value"
+          />
+          <v-icon class="pb-3 pr-1">mdi-arrow-left-bold</v-icon>
+          <v-combobox
+            v-model="owner"
+            label="HEAD OWNER"
             class=" ml-2"
-            :error-messages="originErrors"
+            :items="history.owner.slice().reverse()"
+            :error-messages="ownerErrors"
+            placeholder="owner"
+            dense
             required
-            :style="{ width: '60px' }"
+            :style="{ width: '72px' }"
+            @input.native="owner = $event.srcElement.value"
           />
-          <v-text-field
+          <v-combobox
             v-model="branch"
-            label="BRANCH NAME"
+            label="HEAD BRANCH"
             class=" ml-2"
+            :items="history.branch.slice().reverse()"
             :error-messages="branchErrors"
+            placeholder="feature/$$ISSUE_ID$$"
+            dense
             required
             persistent-hint
+            @input.native="branch = $event.srcElement.value"
           />
         </div>
         <v-subheader class="pl-0">TEMPLATE</v-subheader>
@@ -51,12 +68,13 @@
         <v-btn
           block
           small
-          color="primary"
+          :color="error ? 'error' : 'primary'"
           class="mt-5"
           :loading="loading"
           @click="onClick"
-          >Create Pull Request</v-btn
         >
+          {{ error ? 'Error Occurred' : 'Create Pull Request' }}
+        </v-btn>
       </v-container>
     </v-content>
   </v-app>
@@ -64,125 +82,188 @@
 
 <script>
 import browser from 'webextension-polyfill'
+import { mapMutations, mapState } from 'vuex'
 import { validationMixin } from 'vuelidate'
 import { required } from 'vuelidate/lib/validators'
 
+const ownerAndRepository = (value) => !!value.match(/^[^/]+\/[^/]+$/)
+
 export default {
   mixins: [validationMixin],
-
   validations: {
-    upstream: { required },
-    origin: { required },
-    repository: { required },
+    baseRepository: { required, ownerAndRepository },
+    baseBranch: { required },
+    owner: { required },
     branch: { required }
   },
   data() {
     return {
+      error: false,
       loading: false
     }
   },
   computed: {
-    upstream: {
+    baseRepository: {
       get() {
-        return this.$store.state.upstream
+        return this.inputs.baseRepository
       },
       set(value) {
-        this.$store.commit('setUpstream', { upstream: value })
+        this.setInputs({
+          inputs: {
+            ...this.inputs,
+            baseRepository: value
+          }
+        })
       }
     },
-    origin: {
+    baseBranch: {
       get() {
-        return this.$store.state.origin
+        return this.inputs.baseBranch
       },
       set(value) {
-        this.$store.commit('setOrigin', { origin: value })
+        this.setInputs({
+          inputs: {
+            ...this.inputs,
+            baseBranch: value
+          }
+        })
       }
     },
-    repository: {
+    owner: {
       get() {
-        return this.$store.state.repository
+        return this.inputs.owner
       },
       set(value) {
-        this.$store.commit('setRepository', { repository: value })
+        this.setInputs({
+          inputs: {
+            ...this.inputs,
+            owner: value
+          }
+        })
       }
     },
     branch: {
       get() {
-        return this.$store.state.branch
+        return this.inputs.branch
       },
       set(value) {
-        this.$store.commit('setBranch', { branch: value })
+        this.setInputs({
+          inputs: {
+            ...this.inputs,
+            branch: value
+          }
+        })
       }
     },
     title: {
       get() {
-        return this.$store.state.title
+        return this.inputs.title
       },
       set(value) {
-        this.$store.commit('setTitle', { title: value })
+        this.setInputs({
+          inputs: {
+            ...this.inputs,
+            title: value
+          }
+        })
       }
     },
     body: {
       get() {
-        return this.$store.state.body
+        return this.inputs.body
       },
       set(value) {
-        this.$store.commit('setBody', { body: value })
+        this.setInputs({
+          inputs: {
+            ...this.inputs,
+            body: value
+          }
+        })
       }
     },
-    upstreamErrors() {
-      const errors = []
-      if (!this.$v.upstream.$dirty) return errors
-      !this.$v.upstream.required && errors.push('Upstream is required')
-      return errors
+    baseRepositoryErrors() {
+      if (!this.$v.baseRepository.$dirty) {
+        return []
+      }
+      if (!this.$v.baseRepository.required) {
+        return ['Repository is required']
+      }
+      if (!this.$v.baseRepository.ownerAndRepository) {
+        return ['Invalid repository']
+      }
+      return []
     },
-    repositoryErrors() {
-      const errors = []
-      if (!this.$v.repository.$dirty) return errors
-      !this.$v.repository.required && errors.push('Repository is required')
-      return errors
+    baseBranchErrors() {
+      if (!this.$v.baseBranch.$dirty) {
+        return []
+      }
+      if (!this.$v.baseBranch.required) {
+        return ['Branch is required']
+      }
+      return []
     },
-    originErrors() {
-      const errors = []
-      if (!this.$v.origin.$dirty) return errors
-      !this.$v.origin.required && errors.push('Origin is required')
-      return errors
+    ownerErrors() {
+      if (!this.$v.owner.$dirty) {
+        return []
+      }
+      if (!this.$v.owner.required) {
+        return ['Owner is required']
+      }
+      return []
     },
     branchErrors() {
-      const errors = []
-      if (!this.$v.branch.$dirty) return errors
-      !this.$v.branch.required && errors.push('Branch is required')
-      return errors
-    }
+      if (!this.$v.branch.$dirty) {
+        return []
+      }
+      if (!this.$v.branch.required) {
+        return ['Branch is required']
+      }
+      return []
+    },
+    ...mapState(['inputs', 'history'])
   },
-  watch: {},
-  async created() {},
   methods: {
-    onClick() {
+    async onClick() {
+      this.error = false
       this.$v.$touch()
-      if (this.$v.$invalid) {
+      if (this.$v.$error) {
         return
       }
       this.loading = true
-      browser.runtime.sendMessage({
-        id: 'createPullRequest',
-        data: {
-          upstream: this.upstream,
-          repository: this.repository,
-          origin: this.origin,
-          branch: this.branch,
-          title: this.title,
-          body: this.body
-        }
-      })
-    }
+      try {
+        await browser.runtime.sendMessage({
+          id: 'createPullRequest',
+          data: {
+            baseRepository: this.baseRepository,
+            baseBranch: this.baseBranch,
+            owner: this.owner,
+            branch: this.branch,
+            title: this.title,
+            body: this.body
+          }
+        })
+        this.addHistory({
+          history: {
+            baseRepository: this.baseRepository,
+            baseBranch: this.baseBranch,
+            owner: this.owner,
+            branch: this.branch
+          }
+        })
+      } catch (e) {
+        console.error(e)
+        this.loading = false
+        this.error = true
+      }
+    },
+    ...mapMutations(['setInputs', 'addHistory'])
   }
 }
 </script>
 
 <style scoped>
 .v-application {
-  min-width: 512px;
+  min-width: 600px;
 }
 .v-text-field >>> .v-label {
   font-size: 0.8rem;

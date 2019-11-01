@@ -85,7 +85,7 @@ const getIssue = async (tab) => {
 
 const buildPr = (params, issue) => {
   const branch = params.branch.replace(/\$\$ISSUE_ID\$\$/, issue.id)
-  const url = `https://github.com/${params.upstream}/${params.repository}/compare/develop...${params.origin}:${branch}?expand=1`
+  const url = `https://github.com/${params.baseRepository}/compare/${params.baseBranch}...${params.owner}:${branch}?expand=1`
 
   const title = params.title
     .replace(/\$\$ISSUE_ID\$\$/, issue.id)
@@ -157,8 +157,13 @@ browser.runtime.onMessage.addListener(async (message) => {
   const { id, data } = message
   switch (id) {
     case 'createPullRequest': {
-      const tab = await getActiveTab()
-      await createPullRequest(tab, data)
+      try {
+        const tab = await getActiveTab()
+        await createPullRequest(tab, data)
+      } catch (e) {
+        console.error(e)
+        throw e
+      }
       break
     }
   }
