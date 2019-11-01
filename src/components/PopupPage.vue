@@ -1,91 +1,98 @@
 <template>
   <v-app>
     <v-content>
-      <v-container fluid pa-5>
-        <div class="title mb-5">
-          <v-icon class="pb-1 pr-1">mdi-jira</v-icon>JIRA Issue to
-          <v-icon class="pb-1 pr-1">mdi-github-circle</v-icon>GitHub Pull Request
-        </div>
-        <div class="d-flex mt-1">
-          <!-- TODO: https://github.com/vuetifyjs/vuetify/issues/4679 -->
-          <v-combobox
-            v-model="baseRepository"
-            label="BASE REPOSITORY"
-            class=" mr-2"
-            :items="history.baseRepository.slice().reverse()"
-            :error-messages="baseRepositoryErrors"
-            placeholder="owner/repository-name"
-            dense
-            required
-            @input.native="baseRepository = $event.srcElement.value"
-          />
-          <v-combobox
-            v-model="baseBranch"
-            label="BASE BRANCH"
-            class=" mr-2"
-            :items="history.baseBranch.slice().reverse()"
-            :error-messages="baseBranchErrors"
-            placeholder="develop"
-            dense
-            required
-            :style="{ width: '72px' }"
-            @input.native="baseBranch = $event.srcElement.value"
-          />
-          <v-icon class="pb-3 pr-1">mdi-arrow-left-bold</v-icon>
-          <v-combobox
-            v-model="owner"
-            label="HEAD OWNER"
-            class=" ml-2"
-            :items="history.owner.slice().reverse()"
-            :error-messages="ownerErrors"
-            placeholder="owner"
-            dense
-            required
-            :style="{ width: '72px' }"
-            @input.native="owner = $event.srcElement.value"
-          />
-          <v-combobox
-            v-model="branch"
-            label="HEAD BRANCH"
-            class=" ml-2"
-            :items="history.branch.slice().reverse()"
-            :error-messages="branchErrors"
-            placeholder="feature/$$ISSUE_ID$$"
-            dense
-            required
-            persistent-hint
-            @input.native="branch = $event.srcElement.value"
-          />
-        </div>
-        <v-text-field
-          v-model="titleTemplate"
-          label="TITLE TEMPLATE"
-          placeholder="[$$ISSUE_ID$$] $$ISSUE_HEADING$$"
-          hint="`$$ISSUE_ID$$`, `$$ISSUE_HEADING$$` are replaced with this issue entry"
-          persistent-hint
-        />
-        <v-textarea
-          v-model="bodyTemplate"
-          label="BODY TEMPLATE"
-          placeholder="Leave a comment"
-          hint="`$$ISSUE_ID$$`, `$$ISSUE_URL$$`, `$$ISSUE_HEADING$$`, `$$ISSUE_DESCRIPTION$$` are replaced with this issue entry"
-          persistent-hint
-        />
-        <v-switch
-          v-model="useBodyTemplate"
-          label="Use Body Template"
-          hide-details
-        />
-        <v-btn
-          block
-          small
-          :color="error ? 'error' : 'primary'"
-          class="mt-5"
-          :loading="loading"
-          @click="onClick"
+      <v-container fluid pa-0>
+        <div
+          class="caption pt-1 pb-0 px-3 d-flex align-center"
+          :style="{ marginBottom: '2px' }"
         >
-          {{ error ? 'Error Occurred' : 'Create Pull Request' }}
-        </v-btn>
+          <v-icon small class="mr-1" color="primary">mdi-source-pull</v-icon>
+          <span>JIRA Issue to GitHub Pull Request</span>
+        </div>
+        <v-divider />
+        <div class="pa-3 mt-3">
+          <div class="d-flex">
+            <!-- TODO: https://github.com/vuetifyjs/vuetify/issues/4679 -->
+            <v-combobox
+              v-model="baseRepository"
+              label="BASE REPOSITORY"
+              class=" mr-2"
+              :items="history.baseRepository.slice().reverse()"
+              :error-messages="baseRepositoryErrors"
+              placeholder="owner/repository-name"
+              dense
+              required
+              @input.native="baseRepository = $event.srcElement.value"
+            />
+            <v-combobox
+              v-model="baseBranch"
+              label="BASE BRANCH"
+              class=" mr-2"
+              :items="history.baseBranch.slice().reverse()"
+              :error-messages="baseBranchErrors"
+              placeholder="develop"
+              dense
+              required
+              :style="{ width: '72px' }"
+              @input.native="baseBranch = $event.srcElement.value"
+            />
+            <v-icon class="pb-3 pr-1">mdi-arrow-left-bold</v-icon>
+            <v-combobox
+              v-model="owner"
+              label="HEAD OWNER"
+              class=" ml-2"
+              :items="history.owner.slice().reverse()"
+              :error-messages="ownerErrors"
+              placeholder="owner"
+              dense
+              required
+              :style="{ width: '72px' }"
+              @input.native="owner = $event.srcElement.value"
+            />
+            <v-combobox
+              v-model="branch"
+              label="HEAD BRANCH"
+              class=" ml-2"
+              :items="history.branch.slice().reverse()"
+              :error-messages="branchErrors"
+              placeholder="feature/$$ISSUE_ID$$"
+              dense
+              required
+              persistent-hint
+              @input.native="branch = $event.srcElement.value"
+            />
+          </div>
+          <v-text-field
+            v-model="titleTemplate"
+            label="TITLE TEMPLATE"
+            placeholder="[$$ISSUE_ID$$] $$ISSUE_HEADING$$"
+            hint="`$$ISSUE_ID$$`, `$$ISSUE_HEADING$$` are replaced with this issue entry"
+            persistent-hint
+          />
+          <v-textarea
+            v-model="bodyTemplate"
+            class="mt-5"
+            label="BODY TEMPLATE"
+            placeholder="Leave a comment"
+            hint="`$$ISSUE_ID$$`, `$$ISSUE_URL$$`, `$$ISSUE_HEADING$$`, `$$ISSUE_DESCRIPTION$$` are replaced with this issue entry"
+            persistent-hint
+          />
+          <v-switch
+            v-model="useBodyTemplate"
+            label="Use Body Template"
+            hide-details
+          />
+          <v-btn
+            block
+            small
+            :color="error ? 'error' : 'primary'"
+            class="mt-5"
+            :loading="loading"
+            @click="onClick"
+          >
+            {{ error ? 'Error Occurred' : 'Create Pull Request' }}
+          </v-btn>
+        </div>
       </v-container>
     </v-content>
   </v-app>
