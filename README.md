@@ -2,15 +2,17 @@
 
 ![badge](https://github.com/fiahfy/jira-issue-to-github-pr/workflows/Web%20Extension%20CI/badge.svg)
 
-> WIP
+> Chrome Extension for Creating GitHub Pull Request from JIRA Issues
 
 ## Features
 
-- WIP
+- Create GitHub pull reqests from JIRA issue pages
+- The branch name, title and body can be set automatically by using the issue values
 
 ## Screenshots
 
 ![screenshot](.github/img/screenshot1.png)
+![screenshot](.github/img/screenshot2.png)
 
 ## Installation
 
