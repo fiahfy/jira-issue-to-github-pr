@@ -55,6 +55,17 @@ const extractIssueIdfromUrl = (url) => {
   match = url.match(
     /^https:\/\/.*\.atlassian\.net\/projects\/[^/]+\/issues\/([^?/]+)/
   )
+  if (match) {
+    return match[1]
+  }
+  // project issue list
+  match = url.match(
+    /^https:\/\/.*\.atlassian\.net\/projects\/[^/]+\/issues\/(?:$|\?)/
+  )
+  if (match) {
+    // find an issue id in document later because it is unknown from url
+    return 'LAZY_FINDING_ID'
+  }
   // rapid view
   const issueId = extractIssueIdFromRapidBoardUrl(url)
   if (issueId) {
@@ -71,10 +82,14 @@ const buildIssueUrlFromCurrentUrl = (issueId, url) => {
 }
 
 const getIssue = async (tab) => {
-  const issueId = extractIssueIdfromUrl(tab.url)
-  const { heading, description } = await browser.tabs.sendMessage(tab.id, {
-    id: 'requestContents'
+  let issueId = extractIssueIdfromUrl(tab.url)
+  const { heading, description, id } = await browser.tabs.sendMessage(tab.id, {
+    id: 'requestContents',
+    data: {
+      lazyFindingId: issueId === 'LAZY_FINDING_ID'
+    }
   })
+  issueId = issueId === 'LAZY_FINDING_ID' ? id : issueId
   return {
     id: issueId,
     url: buildIssueUrlFromCurrentUrl(issueId, tab.url),
@@ -85,19 +100,21 @@ const getIssue = async (tab) => {
 
 const buildPr = (params, issue) => {
   const branch = params.branch.replace(/\$\$ISSUE_ID\$\$/, issue.id)
-  const url = `https://github.com/${params.upstream}/${params.repository}/compare/develop...${params.origin}:${branch}?expand=1`
+  const url = `https://github.com/${params.baseRepository}/compare/${params.baseBranch}...${params.owner}:${branch}?expand=1`
 
-  const title = params.title
+  const title = params.titleTemplate
     .replace(/\$\$ISSUE_ID\$\$/, issue.id)
     .replace(/\$\$ISSUE_URL\$\$/, issue.url)
     .replace(/\$\$ISSUE_HEADING\$\$/, issue.heading)
     .replace(/\$\$ISSUE_DESCRIPTION\$\$/, issue.description)
 
-  const body = params.body
-    .replace(/\$\$ISSUE_ID\$\$/, issue.id)
-    .replace(/\$\$ISSUE_URL\$\$/, issue.url)
-    .replace(/\$\$ISSUE_HEADING\$\$/, issue.heading)
-    .replace(/\$\$ISSUE_DESCRIPTION\$\$/, issue.description)
+  const body = params.useBodyTemplate
+    ? params.bodyTemplate
+        .replace(/\$\$ISSUE_ID\$\$/, issue.id)
+        .replace(/\$\$ISSUE_URL\$\$/, issue.url)
+        .replace(/\$\$ISSUE_HEADING\$\$/, issue.heading)
+        .replace(/\$\$ISSUE_DESCRIPTION\$\$/, issue.description)
+    : ''
 
   return { url, title, body }
 }
@@ -113,7 +130,14 @@ const findOrCreateTab = async (url) => {
 }
 
 const createPullRequest = async (tab, params) => {
+  if (!tab) {
+    throw new Error('Active tab is not found')
+  }
+
   const issue = await getIssue(tab)
+  if (!issue.id || !issue.url || !issue.heading) {
+    throw new Error('Any issue value is not found')
+  }
 
   const pr = buildPr(params, issue)
 
@@ -157,8 +181,13 @@ browser.runtime.onMessage.addListener(async (message) => {
   const { id, data } = message
   switch (id) {
     case 'createPullRequest': {
-      const tab = await getActiveTab()
-      await createPullRequest(tab, data)
+      try {
+        const tab = await getActiveTab()
+        await createPullRequest(tab, data)
+      } catch (e) {
+        console.error(e)
+        throw e
+      }
       break
     }
   }

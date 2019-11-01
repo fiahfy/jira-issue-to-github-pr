@@ -1,6 +1,6 @@
 {
   "name": "jira-issue-to-github-pr",
-  "description": "WIP",
+  "description": "Creating GitHub Pull Request from JIRA Issues",
   "version": "0.0.1",
   "author": {
     "name": "fiahfy",
