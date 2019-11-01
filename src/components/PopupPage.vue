@@ -10,7 +10,7 @@
           <span>JIRA Issue to GitHub Pull Request</span>
         </div>
         <v-divider />
-        <div class="pa-3 mt-3">
+        <div class="pa-3 mt-3" :style="{ position: 'relative' }">
           <div class="d-flex">
             <!-- TODO: https://github.com/vuetifyjs/vuetify/issues/4679 -->
             <v-combobox
@@ -85,13 +85,19 @@
           <v-btn
             block
             small
-            :color="error ? 'error' : 'primary'"
+            color="primary"
             class="mt-5"
             :loading="loading"
             @click="onClick"
           >
-            {{ error ? 'Error Occurred' : 'Create Pull Request' }}
+            Create Pull Request
           </v-btn>
+          <v-snackbar v-model="snackbar" color="error" top absolute>
+            {{ error }}
+            <v-btn dark text @click="snackbar = false">
+              Close
+            </v-btn>
+          </v-snackbar>
         </div>
       </v-container>
     </v-content>
@@ -116,8 +122,9 @@ export default {
   },
   data() {
     return {
-      error: false,
-      loading: false
+      error: '',
+      loading: false,
+      snackbar: false
     }
   },
   computed: {
@@ -255,7 +262,8 @@ export default {
   },
   methods: {
     async onClick() {
-      this.error = false
+      this.error = ''
+
       this.$v.$touch()
       if (this.$v.$error) {
         return
@@ -285,7 +293,8 @@ export default {
       } catch (e) {
         console.error(e)
         this.loading = false
-        this.error = true
+        this.snackbar = true
+        this.error = e.message
       }
     },
     ...mapMutations(['setInputs', 'addHistory'])

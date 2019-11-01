@@ -19,7 +19,7 @@ const querySelectorAsync = (selector, interval = 100, timeout = 10000) => {
   })
 }
 
-const getContents = async () => {
+const getContents = async ({ lazyFindingId = false }) => {
   const headingEl = await querySelectorAsync(
     '[data-test-id="issue.views.issue-base.foundation.summary.heading"]'
   )
@@ -34,12 +34,20 @@ const getContents = async () => {
   }
   const description = td.turndown(descriptionEl.innerHTML)
 
-  return { heading, description }
+  let id = null
+  if (lazyFindingId) {
+    const match = document.title.match(/^\[([^\]]+)\]/)
+    if (match) {
+      id = match[1]
+    }
+  }
+
+  return { heading, description, id }
 }
 
-browser.runtime.onMessage.addListener(async ({ id }) => {
+browser.runtime.onMessage.addListener(async ({ id, data }) => {
   switch (id) {
     case 'requestContents':
-      return await getContents()
+      return await getContents(data)
   }
 })

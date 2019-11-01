@@ -58,6 +58,14 @@ const extractIssueIdfromUrl = (url) => {
   if (match) {
     return match[1]
   }
+  // project issue list
+  match = url.match(
+    /^https:\/\/.*\.atlassian\.net\/projects\/[^/]+\/issues\/(?:$|\?)/
+  )
+  if (match) {
+    // find an issue id in document later because it is unknown from url
+    return 'LAZY_FINDING_ID'
+  }
   // rapid view
   const issueId = extractIssueIdFromRapidBoardUrl(url)
   if (issueId) {
@@ -74,10 +82,14 @@ const buildIssueUrlFromCurrentUrl = (issueId, url) => {
 }
 
 const getIssue = async (tab) => {
-  const issueId = extractIssueIdfromUrl(tab.url)
-  const { heading, description } = await browser.tabs.sendMessage(tab.id, {
-    id: 'requestContents'
+  let issueId = extractIssueIdfromUrl(tab.url)
+  const { heading, description, id } = await browser.tabs.sendMessage(tab.id, {
+    id: 'requestContents',
+    data: {
+      lazyFindingId: issueId === 'LAZY_FINDING_ID'
+    }
   })
+  issueId = issueId === 'LAZY_FINDING_ID' ? id : issueId
   return {
     id: issueId,
     url: buildIssueUrlFromCurrentUrl(issueId, tab.url),
@@ -118,7 +130,14 @@ const findOrCreateTab = async (url) => {
 }
 
 const createPullRequest = async (tab, params) => {
+  if (!tab) {
+    throw new Error('Active tab is not found')
+  }
+
   const issue = await getIssue(tab)
+  if (!issue.id || !issue.url || !issue.heading) {
+    throw new Error('Any issue value is not found')
+  }
 
   const pr = buildPr(params, issue)
 
